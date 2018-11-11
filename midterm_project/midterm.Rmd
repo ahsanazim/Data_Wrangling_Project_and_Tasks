@@ -1,0 +1,408 @@
+---
+title: "MIDTERM"
+output: pdf_document
+---
+
+## Introduction
+
+Our purpose in this assignment is to clean the provide NHANES data set. Much has been left up to personal discretion, and therefore the student must make many perhaps subjective decisions regarding what constitutes "unclean" data, what a good solution to any uncleanliness might be, and so on. Clearly, the technical aspects of isolating and fixing cleanliness in this assignment are quick and easy to implement. It is instead the *why* behind each step that merits longer thought. For this reason, we extensively discuss each action taken. Though we do not make a litany of changes to the data set, we do alter things in non-trivial ways. Each alteration will be explained at length, with alternative options evaluated and discarded as necessary. 
+
+## Read in the data
+We use the following [technique](https://rstudio-pubs-static.s3.amazonaws.com/1776_dbaebbdbde8d46e693e5cb60c768ba92.html) for reading in SAS export files
+
+```{r}
+library(foreign)
+d <- read.xport("/Users/AhsanAzim/Desktop/current_classes/QBS181/midterm/DIQ_I.xpt")
+```
+
+From here on out we focus on the various data cleaning procedures.
+
+## Dealing with Cryptic Column Names:
+
+This happens column by column as well. There are several considerations that go into this renaming process. As a general rule, backed up by online research and conversations with the Instructor, data sets should at this point be as self explanatory as possible. Yes, we shall have the code book for reference, but for data to be as "modelling ready as possible", we need to be able to readily understand what a column means - what the significance of the data is, what kind of variable it is. All these things should be easy to surmise. 
+
+How to do so with this data? A few complicating factors arise, most obvious of these being the occasionally extremely long column names of the actual data (see codebook [here](https://wwwn.cdc.gov/Nchs/Nhanes/2015-2016/DIQ_I.htm#DIQ159)). Therefore a straightforward renaming based on actual column names will not work - it gets very unwieldy for longer names such as "*Last Time Had Pupils Dilated for Eye Exam*". It does, though, work for more succinct names in the vein of *Race*, and *Gender*. Needless to say we follow the expected procedure there. 
+
+What to do with the longer names? Here we have again have numerous options - in reality a negative. Ideally one would easily follow a convention naming procedure and be done with things. Problematically, R does not really have a true convention regarding naming (source: [https://www.r-bloggers.com/consistent-naming-conventions-in-r/](https://www.r-bloggers.com/consistent-naming-conventions-in-r/)). The central advice, though, remains that once a convention is chose, stick with it. For the current problems we universally choose *UpperCamelCase* naming conventions. We also shorten some of the longer column names, e.g. the aforementioned "*Last Time Had Pupils Dilated for Eye Exam*" becoems "*LastTimePupilsDilate*". This trivially applies to other columns as well. 
+
+Finally, a note on the code below. We choose the longer, perhaps repetitive, command for naming columns in order to be able to demonstrate column numbers explicitly. This is for the purpose of highlighting a discrepancy between the given data and what the data should **ideally contain**.
+
+```{r}
+colnames(d)[grep("SEQN", colnames(d))] <- "RespSeqNum"
+colnames(d)[grep("DIQ010", colnames(d))] <- "DoctorTold"
+colnames(d)[grep("DID040", colnames(d))] <- "AgeFirstTold"
+colnames(d)[grep("DIQ159", colnames(d))] <- "CheckItem"
+colnames(d)[grep("DIQ160", colnames(d))] <- "EverToldPreDiab"
+colnames(d)[grep("DIQ170", colnames(d))] <- "EverToldHealthRisk"
+colnames(d)[grep("DIQ172", colnames(d))] <- "FeelDiabRisk"
+colnames(d)[grep("DIQ175A", colnames(d))] <- "FamilyHistory"
+colnames(d)[grep("DIQ175B", colnames(d))] <- "Overweight"
+colnames(d)[grep("DIQ175C", colnames(d))] <- "Age"
+colnames(d)[grep("DIQ175D", colnames(d))] <- "PoorDiet"
+colnames(d)[grep("DIQ175E", colnames(d))] <- "Race"
+colnames(d)[grep("DIQ175F", colnames(d))] <- "HadBabyOverNine"
+colnames(d)[grep("DIQ175G", colnames(d))] <- "LackPhyAct"
+colnames(d)[grep("DIQ175H", colnames(d))] <- "HighBloodSug"
+colnames(d)[grep("DIQ175I", colnames(d))] <- "HighBloodPres"
+colnames(d)[grep("DIQ175J", colnames(d))] <- "HighCholest"
+colnames(d)[grep("DIQ175K", colnames(d))] <- "Hypoglycemic"
+colnames(d)[grep("DIQ175L", colnames(d))] <- "ExtremeHung"
+colnames(d)[grep("DIQ175M", colnames(d))] <- "TinglNumb"
+colnames(d)[grep("DIQ175N", colnames(d))] <- "BlurVision"
+colnames(d)[grep("DIQ175O", colnames(d))] <- "IncrFatigue"
+colnames(d)[grep("DIQ175P", colnames(d))] <- "AnyoneAtRisk"
+colnames(d)[grep("DIQ175Q", colnames(d))] <- "DoctorWarn"
+colnames(d)[grep("DIQ175R", colnames(d))] <- "OtherOrSpecify"
+colnames(d)[grep("DIQ175S", colnames(d))] <- "GestatioDiab"
+colnames(d)[grep("DIQ175T", colnames(d))] <- "FreqUrination"
+colnames(d)[grep("DIQ175U", colnames(d))] <- "Thirst"
+colnames(d)[grep("DIQ175V", colnames(d))] <- "SweetCraving"
+colnames(d)[grep("DIQ175W", colnames(d))] <- "Medication"
+colnames(d)[grep("DIQ175X", colnames(d))] <- "PolyOvarSynd"
+colnames(d)[grep("DIQ180", colnames(d))] <- "BloodTestThreeYrs"
+colnames(d)[grep("DIQ050", colnames(d))] <- "TakingInsulNow"
+colnames(d)[grep("DID060", colnames(d))] <- "HowLongTakeInsul"
+colnames(d)[grep("DIQ060U", colnames(d))] <- "UnitMeasureInsul"
+colnames(d)[grep("DIQ065", colnames(d))] <- "CheckItemInsul"
+colnames(d)[grep("DIQ070", colnames(d))] <- "TakePillsBloodSug"
+colnames(d)[grep("DIQ229", colnames(d))] <- "CheckItemSug"
+colnames(d)[grep("DIQ230", colnames(d))] <- "WhenSawDiabSpec"
+colnames(d)[grep("DIQ240", colnames(d))] <- "SeeOneDrForDiab"
+colnames(d)[grep("DID250", colnames(d))] <- "PastYearHowManyDrs"
+colnames(d)[grep("DID260", colnames(d))] <- "HowOftenBloodSugCheck"
+colnames(d)[grep("DIQ260U", colnames(d))] <- "UnitMeasureSug"
+colnames(d)[grep("DIQ275", colnames(d))] <- "PastYearDrCheckA1C"
+colnames(d)[grep("DIQ280", colnames(d))] <- "LastA1CLvl"
+colnames(d)[grep("DIQ291", colnames(d))] <- "DrRecommenA1CLvl"
+colnames(d)[grep("DIQ295", colnames(d))] <- "CheckA1C"
+colnames(d)[grep("DIQ300S", colnames(d))] <- "RecentSBP"
+colnames(d)[grep("DIQ300D", colnames(d))] <- "RecentDBP"
+colnames(d)[grep("DID310S", colnames(d))] <- "DrRecommenSBP"
+colnames(d)[grep("DID310D", colnames(d))] <- "DrRecommenDBP"
+colnames(d)[grep("DID320", colnames(d))] <- "RecentLDLNum"
+colnames(d)[grep("DID330", colnames(d))] <- "DrRecommenLDLNum"
+colnames(d)[grep("DID341", colnames(d))] <- "PastYearDrCheckSores"
+colnames(d)[grep("DID350", colnames(d))] <- "PastYearYouCheckFtSores"
+colnames(d)[grep("DIQ350U", colnames(d))] <- "UnitMeasure"
+colnames(d)[grep("DIQ360", colnames(d))] <- "LastTimePupilsDilate"
+colnames(d)[grep("DIQ080", colnames(d))] <- "DiabAffectedEyesRetino"
+```
+
+Note that the following commands will fail since we only have the 54 columns listed above:
+
+We could have provided the `eval=FALSE` flag to a subset of the above code so as to prevent it from running when rendered in R Studio. 
+
+Clearly, as the column numbers show, we have 54 when we should in reality be expecting 58. It goes without saying that this is a weakness of the provided data set, and should be kept in mind by any future modellers.
+
+## Dealing with Cryptic Column Data:
+
+Here we deal with the fact that many columns contain data that encodes specific information, as opposed to the information itself. This may have benefits for the size of the dataset in transmission and such, but is a disadvantage for data modellers. For the data set to be as self-explanatory as possible, we must therefore adjust the content of certain columns, mapping things to the code book and thus making content more explicit.
+
+*DoctorTold:*
+```{r}
+d$DoctorTold[d$DoctorTold==1] <- "Yes"
+d$DoctorTold[d$DoctorTold==2] <- "No"
+d$DoctorTold[d$DoctorTold==3] <- "Borderline"
+d$DoctorTold[d$DoctorTold==7] <- "Refused"
+d$DoctorTold[d$DoctorTold==9] <- "DontKnow"
+```
+
+
+*EverToldPreDiab*
+```{r}
+d$EverToldPreDiab[d$EverToldPreDiab==1] <- "Yes"
+d$EverToldPreDiab[d$EverToldPreDiab==2] <- "No"
+d$EverToldPreDiab[d$EverToldPreDiab==7] <- "Refused"
+d$EverToldPreDiab[d$EverToldPreDiab==9] <- "DontKnow"
+```
+
+*EverToldHealthRisk*
+```{r}
+d$EverToldHealthRisk[d$EverToldHealthRisk==1] <- "Yes"
+d$EverToldHealthRisk[d$EverToldHealthRisk==2] <- "No"
+d$EverToldHealthRisk[d$EverToldHealthRisk==7] <- "Refused"
+d$EverToldHealthRisk[d$EverToldHealthRisk==9] <- "DontKnow"
+```
+
+
+*FeelCouldBeAtRisk*
+```{r}
+d$FeelDiabRisk[d$FeelDiabRisk==1] <- "Yes"
+d$FeelDiabRisk[d$FeelDiabRisk==2] <- "No"
+d$FeelDiabRisk[d$FeelDiabRisk==7] <- "Refused"
+d$FeelDiabRisk[d$FeelDiabRisk==9] <- "DontKnow"
+```
+
+*FamilyHistory*
+```{r}
+d$FamilyHistory[d$FamilyHistory==10] <- "Yes"
+d$FamilyHistory[d$FamilyHistory==77] <- "Refused"
+d$FamilyHistory[d$FamilyHistory==99] <- "DontKnow"
+```
+
+*Overweight*
+```{r}
+d$Overweight[d$Overweight==11] <- "Yes"
+```
+
+*Age*
+```{r}
+d$Age[d$Age==12] <- "Yes"
+```
+
+*Poor Diet*
+```{r}
+d$PoorDiet[d$PoorDiet==13] <- "Yes"
+```
+
+*Race*
+```{r}
+d$Race[d$Race==14] <- "Yes"
+```
+
+
+*Had a baby weighed over 9 lbs. at birth*
+```{r}
+d$HadBabyOverNine[d$HadBabyOverNine==15] <- "Yes"
+```
+
+*Lack of Physical Activity*
+```{r}
+d$LackPhyAct[d$LackPhyAct==16] <- "Yes"
+```
+
+*High Blood Pressure*
+```{r}
+d$HighBloodPres[d$HighBloodPres==17] <- "Yes"
+```
+
+*High Blood Sugar*
+```{r}
+d$HighBloodSug[d$HighBloodSug==18] <- "Yes"
+```
+
+*High Cholesterol*
+```{r}
+d$HighCholest[d$HighCholest==19] <- "Yes"
+```
+
+*Hypoglycemic*
+```{r}
+d$Hypoglycemic[d$Hypoglycemic==20] <- "Yes"
+```
+
+*ExtremeHung*
+```{r}
+d$ExtremeHung[d$ExtremeHung==21] <- "Yes"
+```
+
+*Tinging or Numbness*
+```{r}
+d$TinglNumb[d$TinglNumb==22] <- "Yes"
+```
+
+*Blurred Vision*
+```{r}
+d$BlurVision[d$BlurVision==23] <- "Yes"
+```
+
+*Increased Fatigue*
+```{r}
+d$IncrFatigue[d$IncrFatigue==24] <- "Yes"
+```
+
+*Anyone at Risk*
+```{r}
+d$AnyoneAtRisk[d$AnyoneAtRisk==25] <- "Yes"
+```
+
+*Doctor Warning*
+```{r}
+d$DoctorWarn[d$DoctorWarn==26] <- "Yes"
+```
+
+*Doctor Warning*
+```{r}
+d$OtherOrSpecify[d$OtherOrSpecify==27] <- "Yes"
+```
+
+*Gestation Diab*
+```{r}
+d$GestatioDiab[d$GestatioDiab==28] <- "Yes"
+```
+
+*Frequent Urination*
+```{r}
+d$FreqUrination[d$FreqUrination==29] <- "Yes"
+```
+
+*Thirst*
+```{r}
+d$Thirst[d$Thirst==30] <- "Yes"
+```
+
+*Sweet Craving*
+```{r}
+d$SweetCraving[d$SweetCraving==31] <- "Yes"
+```
+
+*Medication*
+```{r}
+d$Medication[d$Medication==32] <- "Yes"
+```
+
+*PolyOvarSynd*
+```{r}
+d$PolyOvarSynd[d$PolyOvarSynd==33] <- "Yes"
+```
+
+*BloodTestThreeYrs*
+```{r}
+d$BloodTestThreeYrs[d$BloodTestThreeYrs==1] <- "Yes"
+d$BloodTestThreeYrs[d$BloodTestThreeYrs==2] <- "No"
+d$BloodTestThreeYrs[d$BloodTestThreeYrs==7] <- "Refused"
+d$BloodTestThreeYrs[d$BloodTestThreeYrs==9] <- "DontKnow"
+```
+
+*TakingInsulNow*
+```{r}
+d$TakingInsulNow[d$TakingInsulNow==1] <- "Yes"
+d$TakingInsulNow[d$TakingInsulNow==2] <- "No"
+d$TakingInsulNow[d$TakingInsulNow==7] <- "Refused"
+d$TakingInsulNow[d$TakingInsulNow==9] <- "DontKnow"
+```
+
+*UnitMeasure*
+```{r}
+d$UnitMeasureInsul[d$UnitMeasureInsul==1] <- "Month"
+d$UnitMeasureInsul[d$UnitMeasureInsul==2] <- "Year"
+```
+
+*TakingInsulNow*
+```{r}
+d$TakePillsBloodSug[d$TakePillsBloodSug==1] <- "Yes"
+d$TakePillsBloodSug[d$TakePillsBloodSug==2] <- "No"
+d$TakePillsBloodSug[d$TakePillsBloodSug==7] <- "Refused"
+d$TakePillsBloodSug[d$TakePillsBloodSug==9] <- "DontKnow"
+```
+
+*How long ago saw a specialist*
+```{r}
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==1] <- "<1Years"
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==2] <- "1-2Years"
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==3] <- "2-5Years"
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==4] <- "5+Years"
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==5] <- "Never"
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==7] <- "Refused"
+d$WhenSawDiabSpec[d$WhenSawDiabSpec==9] <- "DontKnow"
+```
+
+*SeeOoneDrForadiab*
+```{r}
+d$SeeOneDrForDiab[d$SeeOneDrForDiab==1] <- "Yes"
+d$SeeOneDrForDiab[d$SeeOneDrForDiab==2] <- "No"
+d$SeeOneDrForDiab[d$SeeOneDrForDiab==7] <- "Refused"
+d$SeeOneDrForDiab[d$SeeOneDrForDiab==9] <- "DontKnow"
+```
+
+*UnitMeasureSug*
+```{r}
+d$UnitMeasureSug[d$UnitMeasureSug==1] <- "Day"
+d$UnitMeasureSug[d$UnitMeasureSug==2] <- "Month"
+d$UnitMeasureSug[d$UnitMeasureSug==3] <- "Week"
+d$UnitMeasureSug[d$UnitMeasureSug==4] <- "Year"
+```
+
+*Doctor Recommended A1C1 Level*
+```{r}
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==1] <- "<6"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==2] <- "<7"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==3] <- "<8"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==4] <- "<9"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==5] <- "<10"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==6] <- "ProvidedNotSpecify"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==77] <- "Refused"
+d$DrRecommenA1CLvl[d$DrRecommenA1CLvl==99] <- "DontKnow"
+```
+
+*UnitMeasure*
+```{r}
+d$UnitMeasure[d$UnitMeasure==1] <- "Day"
+d$UnitMeasure[d$UnitMeasure==2] <- "Month"
+d$UnitMeasure[d$UnitMeasure==3] <- "Week"
+d$UnitMeasure[d$UnitMeasure==4] <- "Year"
+```
+
+
+## Handling Missing Values:
+
+Another problem in this data set is that of extensive missing values. In conventional R syntax, these are denoted as `NA`. The extent of these becomes clear upon even a glance at the data. 
+
+How one fixes this depends on one's priorities. The challenge has two main dimensions, ones that map on nicely to the main types of data:
+
+- categorical (i.e. discrete variables, e.g. "yes" vs "no")
+- continuous  (e.g. range of (0,100])
+
+If it is not clear already, we need differing strategies for each. A canonical method for handling missing values in continuous data is mean imputation. Here we replace each missing value with the mean of all present values. This is not uniformly positive as a method though, and has been much criticized. For one, standard deviations come to be underestimated after mean imputation, among many other issues (see link: [https://www.theanalysisfactor.com/em-imputation-and-missing-data-is-mean-imputation-really-so-terrible/](https://www.theanalysisfactor.com/em-imputation-and-missing-data-is-mean-imputation-really-so-terrible/)). For our purposes, though, we persevere with the strategy. It fulfills our requirements for makign the data set model ready.
+
+This link provides detail on how one might achieve mean imputation in R, and it also happens to be the source for our chosen method: [https://stackoverflow.com/questions/25835643/replace-missing-values-with-column-mean](https://stackoverflow.com/questions/25835643/replace-missing-values-with-column-mean)
+
+See code below for details:
+```{r}
+for(i in 1:ncol(d)){
+  d[is.na(d[,i]), i] <- mean(d[,i], na.rm = TRUE)
+}
+```
+
+Note the warnings generated above for non-numeric data types. That is to be expected, and of no harm.
+
+Observers will also notice that we have not yet handled categorical variables. What to do with them? In this case, a quick and easy approach would be to simply replace each missing value with a label explicitly reading "Missing". This, we feel, is ineffective and of little value as one can calculate the number of missing values regardless - without having access to a specfic label. Consider the following simple method: `sum(is.na(df$col))` (taken from link: [https://stackoverflow.com/questions/24027605/determine-the-number-of-na-values-in-a-column](https://stackoverflow.com/questions/24027605/determine-the-number-of-na-values-in-a-column)). Therefore, we have no need of handling these missing values explicitly, and we keep them in their original state - NA.
+
+## Checking counts:
+
+An advantage of having access to the [codebook](https://wwwn.cdc.gov/Nchs/Nhanes/2015-2016/DIQ_I.htm#DIQ175K) for this dataset is that we can easily test whether our data cleaning process succeeded. One way to do this is by comparing tally the frequencies of our categorical variables, column by column, to the counts listed on the aforementioned website. This should give us a rudimentary sanity check regarding the correctness of our procedure. 
+
+We do this for all the relevant columns below. Note how we present output in a descending sorted manner.
+
+```{r}
+library(dplyr)
+d %>% count(DoctorTold, sort=TRUE)
+d %>% count(EverToldPreDiab, sort=TRUE)
+d %>% count(EverToldHealthRisk, sort=TRUE)
+d %>% count(FeelDiabRisk, sort=TRUE)
+d %>% count(FamilyHistory, sort=TRUE)
+d %>% count(Overweight, sort=TRUE)
+d %>% count(Age, sort=TRUE)
+d %>% count(PoorDiet, sort=TRUE)
+d %>% count(Race, sort=TRUE)
+d %>% count(LackPhyAct, sort=TRUE)
+d %>% count(HighBloodPres, sort=TRUE)
+d %>% count(HighBloodSug, sort=TRUE)
+d %>% count(HighCholest, sort=TRUE)
+d %>% count(Hypoglycemic, sort=TRUE)
+d %>% count(ExtremeHung, sort=TRUE)
+d %>% count(TinglNumb, sort=TRUE)
+d %>% count(BlurVision, sort=TRUE)
+d %>% count(IncrFatigue, sort=TRUE)
+d %>% count(AnyoneAtRisk, sort=TRUE)
+d %>% count(DoctorWarn, sort=TRUE)
+d %>% count(GestatioDiab, sort=TRUE)
+d %>% count(FreqUrination, sort=TRUE)
+d %>% count(Thirst, sort=TRUE)
+d %>% count(SweetCraving, sort=TRUE)
+d %>% count(Medication, sort=TRUE)
+d %>% count(PolyOvarSynd, sort=TRUE)
+d %>% count(BloodTestThreeYrs, sort=TRUE)
+d %>% count(TakingInsulNow, sort=TRUE)
+d %>% count(UnitMeasureInsul, sort=TRUE)
+d %>% count(TakePillsBloodSug, sort=TRUE)
+d %>% count(WhenSawDiabSpec, sort=TRUE)
+d %>% count(SeeOneDrForDiab, sort=TRUE)
+d %>% count(UnitMeasureSug, sort=TRUE)
+d %>% count(DrRecommenA1CLvl, sort=TRUE)
+d %>% count(UnitMeasure, sort=TRUE)
+```
+
+Comparing the tables outputted above to the NHANES codebook linked previously shows the correctness of our cleaning process. 
+
+Another thing to note that is revealed during this cleaning - **all of our categorical column entries have no spaces in them**. This helps in maintaing ease of access during the data modelling process, and is another step in making the data as straightforward to use as possible. This is mirrorred in our choice of column names: everything as `UpperCamelCase` (as opposed to any more exotic alternatives).
